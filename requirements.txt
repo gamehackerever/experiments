@@ -1,0 +1,5 @@
+covid
+duckduckgo_search
+heroku3
+python-telegram-bot
+requests>=2.26.0
