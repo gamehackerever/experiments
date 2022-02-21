@@ -124,6 +124,8 @@ def rom(update: Update, context: CallbackContext) -> None:
             updater.bot.forward_message(chat_id=update.effective_chat.id, from_chat_id =from_chat_id,message_id="1413")
         elif romName.lower() == "havocos" or romName.lower() == "havoc":
             updater.bot.forward_message(chat_id=update.effective_chat.id, from_chat_id =from_chat_id,message_id="1412")
+        elif romName.lower() == "kkrom" or romName.lower() == "kk":
+             update.message.reply_text("KK ROM BEST ROM🥰😂 69FPS POOBG😍😘 COMING SOON😂🤣😆😉😜")
         elif romName.lower() in roms:
             update.message.reply_text("<b>Will Be Added Later: {}</b>".format(romName),parse_mode='html')
         else:
