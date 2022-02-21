@@ -116,11 +116,18 @@ def rom(update: Update, context: CallbackContext) -> None:
             updater.bot.forward_message(chat_id=update.effective_chat.id, from_chat_id =from_chat_id,message_id="1398")
         elif romName.lower() == "cherish" or romName.lower() == "cherishos" :
             updater.bot.forward_message(chat_id=update.effective_chat.id, from_chat_id ="@kernel4vincechat",message_id="326787")
+        elif romName.lower() == "radiant" or romName.lower() == "project radiant" or romName.lower() == "pr":
+            updater.bot.forward_message(chat_id=update.effective_chat.id, from_chat_id =from_chat_id,message_id="1418")
+        elif romName.lower() == "cipheros" or romName.lower() == "cipher":
+            updater.bot.forward_message(chat_id=update.effective_chat.id, from_chat_id =from_chat_id,message_id="1414")
+        elif romName.lower() == "crdroid":
+            updater.bot.forward_message(chat_id=update.effective_chat.id, from_chat_id =from_chat_id,message_id="1413")
+        elif romName.lower() == "havocos" or romName.lower() == "havoc":
+            updater.bot.forward_message(chat_id=update.effective_chat.id, from_chat_id =from_chat_id,message_id="1412")
         elif romName.lower() in roms:
             update.message.reply_text("<b>Will Be Added Later: {}</b>".format(romName),parse_mode='html')
         else:
             update.message.reply_text("<b>FUCK OFF! IS THERE EVEN A ROM WITH THE NAME: {}</b>".format(romName),parse_mode='html')
-   
 
 def google(update: Update, context: CallbackContext) -> None:
     """Used For Googling Stuff"""
@@ -256,9 +263,9 @@ def main():
 
     from_chat_id="@kernel4vince"
     roms = ["octavi","elixir","superior","crdroid","lineageos","pixelextended", \
-        "pixelexperience","blissrom","derpfest","fluid","elixir","aex","ancientos", \
-            "flos","nusantara","derp","arru","arrowos","octavios","pex","pe","superior", \
-                "project-elixir","aospextended","ancientos","forklineageos","nusantaraos", \
+        "pixelexperience","blissrom","derpfest","fluid","elixir","aex","ancientos" "project radiant" "cipheros" , \
+            "flos","nusantara","derp","arru","arrowos","octavios","pex","pe","superior" "pr" "cipher" "orangefox" , \
+                "project-elixir","aospextended","ancientos","forklineageos","nusantaraos" "radiant" "ofox" , \
                 "los","havoc","cherish","shapeshiftos","shapeshiftos","sakuraos","sakura", \
                     "ssos","havocos","cherish","cherishos","arrow","arru","arrowos" ]
 
