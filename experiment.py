@@ -12,6 +12,7 @@ from duckduckgo_search import ddg
 from covid import Covid
 from requests import get
 import json
+import time
 import os
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
@@ -23,17 +24,35 @@ def start(update: Update, context: CallbackContext):
         "<b>Hemlo Gay! I'm Srinand's Personal Bot. FUCK OFF WEN?</b>",parse_mode='html')
 
 def help(update: Update, context: CallbackContext):
-    update.message.reply_text("<b>Available Commands: \
-        \n/start :\n\t\t\t\tUsage :To Start and Get a Brief Description of the Bot \
-        \n\n/help :\n\t\t\t\tUsage :To Get Help \
-        \n\n/echo :\n\t\t\t\tSyntax: /echo MESSAGE \n\t\t\t\tUsage :To Echo your Messages \
-        \n\n/spam :\n\t\t\t\tSyntax: /spam MESSAGE \n\t\t\t\tUsage :To Spam \
-        \n\n/rom :\n\t\t\t\tSyntax: /rom ROM_NAME\n\t\t\t\tUsage :To Get Latest ROM post Of The Specified ROM. \
-        \n\n/google :\n\t\t\t\tSyntax: /google SEARCH_KEYWORD\n\t\t\t\tUsage :To Google Stuff. \
-        \n\n/covid :\n\t\t\t\tSyntax: /covid COUNTRY_NAME\n\t\t\t\tUsage :To Get COVID-19 Stats for COUNTRY_NAME., \
-        \n\n/ofox :\n\t\t\t\tSyntax: /ofox DEVICE_NAME\n\t\t\t\tUsage :To Get Latest OrangeFox Recovery for Specified Device. \
-        \n\n/magisk :\n\t\t\t\tUsage :To Get Latest Magisk Zip/Apk.</b>", \
-            parse_mode='html')
+    args = getFinalWord(update.message.text)
+    if args == "":
+        update.message.reply_text("***Available Commands: \
+            \n\n/start\n\t\t\t\tUsage: Get started With The Bot           \
+            \n\n/help\n\t\t\t\tUsage: Get Help \
+            \n\n/echo <text> \n\t\t\t\tUsage: Echo Messages. \
+            \n\n/spam <count> <text> \n\t\t\t\tUsage: Floods text in the chat.  \
+            \n\n/rom <rom_name>\n\t\t\t\tUsage: Get Latest ROM post. \
+            \n\n/google <search_keyword>\n\t\t\t\tUsage: Google Stuff. \
+            \n\n/covid <country>\n\t\t\t\tUsage: Get COVID-19 Stats. \
+            \n\n/ofox <device>\n\t\t\t\tUsage: Get Latest OrangeFox Recovery. \
+            \n\n/magisk\n\t\t\t\tUsage: Get Latest Magisk Zip/Apk \
+            \n\nUse /help <command> To Know More About It.***",
+                parse_mode='markdown')
+
+    elif args == "spam":
+        update.message.reply_text("***Available Commands: \
+            \n\n/cspam <text> \
+            \n\t\t\t\tUsage: Spam the text letter by letter. \
+            \n\n/spam <count> <text> \
+            \n\t\t\t\tUsage: Floods text in the chat !! \
+            \n\n/wspam <text> \
+            \n\t\t\t\tUsage: Spam the text word by word. \
+            \n\n/picspam <count> <link to image> \
+            \n\t\t\t\tUsage: As if text spam was not enough !! \
+            \n\n/delayspam <delay> <count> <text> \
+            \n\t\t\t\tUsage: /spam but with custom delay. \
+            \n\n\nNOTE : Spam at your own risk !!***",parse_mode='markdown')
+
 
 def echo(update: Update, context: CallbackContext) -> None:
     """Echo the user message."""
@@ -50,25 +69,60 @@ def echo(update: Update, context: CallbackContext) -> None:
     else:
         update.message.reply_text(final)
 
+def cspam(update: Update, context: CallbackContext) -> None:
+        """Spam Multiple Messages"""
+
+        cspamMessage = update.message.text
+        finalMesssage = getFinalWord(cspamMessage)
+        message = finalMesssage.replace(" ", "")
+        
+        for letter in message:
+            context.bot.send_message(chat_id=update.effective_chat.id, text=letter)
+
+def wspam(update: Update, context: CallbackContext) -> None:
+        wspam = getFinalWord(update.message.text)
+        message = wspam.split()
+        for word in message:
+            context.bot.send_message(chat_id=update.effective_chat.id, text=word)
+
 def spam(update: Update, context: CallbackContext) -> None:
-    """Spam Multiple Messages"""
+        try:
+            counter = int(getFinalWord(update.message.text).split(" ", 1)[0])
+        except ValueError or IndexError:
+            update.message.reply_text("The usage of this command is /spam <count> <text>")
+            return
 
-    no = 1
-    final = ""
-    orgMessageText = update.message.text
-    messageText = getFinalWord(orgMessageText)
-    
-    for words in messageText:
-        final = final + words + ""
- 
-    if final=="":
-        update.message.reply_text("FUCK OFF! GIVE A MESSAGE FFS!")
+        textx = getFinalWord(update.message.text)
 
-    while no<21:
-        context.bot.send_message(chat_id=update.effective_chat.id, text=final)  
-        no+=1
-    else:
-        update.effective_chat.send_message("STOPPING SPAM!!\nReason: Spam Count Over 20!")
+        spam_message = str(getFinalWord(update.message.text).split(" ", 1)[1])
+
+        for i in range(counter):
+            context.bot.send_message(chat_id=update.effective_chat.id, text=spam_message)
+
+
+def picspam(update: Update, context: CallbackContext) -> None:
+        text = getFinalWord(update.message.text).split()  
+        try:
+            counter = int(text[0])
+            link = str(text[1])
+        except IndexError:
+            update.message.reply_text("The usage of this command is /pspam <count> <link to image>")
+            return
+        for _ in range(1, counter):
+            context.bot.send_photo(update.effective_chat.id, link)
+
+
+def delayspam(update: Update, context: CallbackContext) -> None:
+        try:
+            spamDelay = float(getFinalWord(update.message.text).split(" ", 2)[0])
+            counter = int(getFinalWord(update.message.text).split(" ", 2)[1])
+            spam_message = str(getFinalWord(update.message.text).split(" ", 2)[2])
+        except ValueError:
+            update.message.reply_text("The usage of this command is .delayspam <delay> <count> <text>")
+            return
+        for _ in range(1, counter):
+            context.bot.send_message(update.effective_chat.id,spam_message)
+            time.sleep(spamDelay)
 
 def rom(update: Update, context: CallbackContext) -> None:
     """Used For Getting ROM Posts"""
@@ -128,6 +182,7 @@ def rom(update: Update, context: CallbackContext) -> None:
             update.message.reply_text("<b>Will Be Added Later: {}</b>".format(romName),parse_mode='html')
         else:
             update.message.reply_text("<b>FUCK OFF! IS THERE EVEN A ROM WITH THE NAME: {}</b>".format(romName),parse_mode='html')
+   
 
 def google(update: Update, context: CallbackContext) -> None:
     """Used For Googling Stuff"""
@@ -155,6 +210,7 @@ def google(update: Update, context: CallbackContext) -> None:
 
 
 def covid(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text("***Fetching Details...\nPlease Wait...***",parse_mode="markdown")
     def format_integer(number, thousand_separator="."):
         def reverse(string):
             string = "".join(reversed(string))
@@ -190,9 +246,11 @@ def covid(update: Update, context: CallbackContext) -> None:
             + f"`Total Tests : {format_integer(country_data['total_tests'])}`\n\n"
             + f"Data provided by [Worldometer](https://www.worldometers.info/coronavirus/country/{country})"
         )
+        updater.bot.delete_message(chat_id = update.message.chat_id, message_id = update.message.message_id + 1)
         update.message.reply_text(f"Corona Virus Info in {country}:\n\n{output_text}",parse_mode='markdown',disable_web_page_preview='true')
 
     except ValueError:
+        updater.bot.delete_message(chat_id = update.message.chat_id, message_id = update.message.message_id + 1)
         update.message.reply_text(f"No information found for: {country}!\nCheck your spelling and try again.",parse_mode='markdown',disable_web_page_preview='true')
 
 def ofox(update: Update,context: CallbackContext) -> None:
@@ -273,6 +331,10 @@ def main():
     updater.dispatcher.add_handler(CommandHandler('help', help))
     updater.dispatcher.add_handler(CommandHandler('echo', echo))
     updater.dispatcher.add_handler(CommandHandler('spam', spam,run_async=True))
+    updater.dispatcher.add_handler(CommandHandler('cspam', cspam,run_async=True))
+    updater.dispatcher.add_handler(CommandHandler('wspam', wspam,run_async=True))
+    updater.dispatcher.add_handler(CommandHandler('picspam', picspam,run_async=True))
+    updater.dispatcher.add_handler(CommandHandler('delayspam', delayspam,run_async=True))
     updater.dispatcher.add_handler(CommandHandler('rom',rom))
     updater.dispatcher.add_handler(CommandHandler('google',google))
     updater.dispatcher.add_handler(CommandHandler('covid',covid))
