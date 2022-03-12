@@ -13,7 +13,12 @@ from covid import Covid
 from requests import get
 import json
 import time
+import aiohttp
 import os
+from datetime import datetime as dt
+from pytz import country_names as c_n
+from pytz import country_timezones as c_tz
+from pytz import timezone as tz
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 updater = Updater(BOT_TOKEN,
@@ -36,6 +41,7 @@ def help(update: Update, context: CallbackContext):
             \n\n/covid <country>\n\t\t\t\tUsage: Get COVID-19 Stats. \
             \n\n/ofox <device>\n\t\t\t\tUsage: Get Latest OrangeFox Recovery. \
             \n\n/magisk\n\t\t\t\tUsage: Get Latest Magisk Zip/Apk \
+            \n\n/time <country name/code> <timezone number>\n\t\t\t\tUsage: Get the time of a country.\
             \n\nUse /help <command> To Know More About It.***",
                 parse_mode='markdown')
 
@@ -299,6 +305,109 @@ def magisk(update: Update, context: CallbackContext) -> None:
         )
     update.message.reply_text(releases,parse_mode="markdown",disable_web_page_preview="true")
 
+def time(update:Update, context: CallbackContext) -> None:
+    def get_tz():
+        """ Get time zone of the given country. """
+        con = getFinalWord(update.message.text).split(" ", 1)[0]
+        if "(Uk)" in con:
+            con = con.replace("Uk", "UK")
+        if "(Us)" in con:
+            con = con.replace("Us", "US")
+        if " Of " in con:
+            con = con.replace(" Of ", " of ")
+        if "(Western)" in con:
+            con = con.replace("(Western)", "(western)")
+        if "Minor Outlying Islands" in con:
+            con = con.replace("Minor Outlying Islands", "minor outlying islands")
+        if "Nl" in con:
+            con = con.replace("Nl", "NL")
+
+        for c_code in list(c_n):
+            if con.title() == c_n[c_code]:
+                return c_tz[c_code]
+        try:
+            if c_n[con]:
+                return c_tz[con]
+        except KeyError:
+            return
+
+        if con not in list(c_n):
+            update.message.reply_text("<b>Invalid Country Probably!</b>",parse_mode="html")
+
+    def time_func():
+        """For /time command, return the time of
+        1. The country passed as an argument,
+        2. The default userbot country(set it by using .settime),
+        3. The server where the userbot runs.
+        """
+        
+        con = getFinalWord(update.message.text).split(" ", 1)[0]
+        try:
+            tz_num = getFinalWord(update.message.text).split(" ", 1)[1]
+        except IndexError:
+            tz_num = ""
+
+        t_form = "%H:%M"
+        c_name = None
+
+        if len(con) > 4:
+            try:
+                c_name = c_n[con]
+            except KeyError:
+                c_name = con
+            timezones = get_tz()
+        elif con==COUNTRY:
+            c_name = COUNTRY
+            tz_num = TZ_NUMBER
+            timezones = get_tz()
+        
+        if getFinalWord(update.message.text) == "":
+            update.message.reply_text(f"`It's`  **{dt.now().strftime(t_form)}**  `here. (IST)`",parse_mode="markdown")
+            return
+        try:
+            if not timezones:
+                update.message.reply_text("`Invaild country.`",parse_mode="markdown")
+                return
+        except UnboundLocalError:
+            update.message.reply_text("`Invaild country.`",parse_mode="markdown")
+
+        if len(timezones) == 1:
+            time_zone = timezones[0]
+        elif len(timezones) > 1:
+            if tz_num:
+                tz_num = int(tz_num)
+                time_zone = timezones[tz_num - 1]
+            else:
+                return_str = f"`{c_name} has multiple timezones:`\n\n"
+
+                for i, item in enumerate(timezones):
+                    return_str += f"`{i+1}. {item}`\n"
+
+                return_str += "\n`Choose one by typing the number "
+                return_str += "in the command.`\n"
+                return_str += f"`Example: .time {c_name} 2`"
+
+                update.message.reply_text(return_str,parse_mode="markdown")
+                return
+
+        dtnow = dt.now(tz(time_zone)).strftime(t_form)
+
+        if c_name != COUNTRY:
+            update.message.reply_text(f"`It's`  **{dtnow}**  `in {c_name}({time_zone} timezone).`",parse_mode="markdown")
+            return
+
+        elif COUNTRY:
+            update.message.reply_text(
+                f"`It's`  **{dtnow}**  `here, in {COUNTRY}" f"({time_zone} timezone).`",parse_mode="markdown"
+            )
+            return
+
+    # Time & Date - Country and Time Zone
+    COUNTRY = str(os.environ.get("COUNTRY") or "")
+    TZ_NUMBER = os.environ.get("TZ_NUMBER") or 1
+    time_func()
+
+
 def getFinalWord(message):
     """Get The Final Message (after removing  /xxxx) """
     j=""
@@ -340,6 +449,7 @@ def main():
     updater.dispatcher.add_handler(CommandHandler('covid',covid))
     updater.dispatcher.add_handler(CommandHandler('ofox',ofox))
     updater.dispatcher.add_handler(CommandHandler('magisk',magisk))
+    updater.dispatcher.add_handler(CommandHandler('time',time))
     updater.start_polling(0)
     updater.idle()
 
